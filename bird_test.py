@@ -1,9 +1,3 @@
-'''
-Created on Aug 16, 2017
-
-@author: hoang
-'''
-
   # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 
@@ -17,7 +11,7 @@ import scipy
 import numpy as np
 import argparse
 
-parser = argparse.ArgumentParser(description='Decide if an image is a picture of a bird_train')
+parser = argparse.ArgumentParser(description='Decide if an image is a picture of a bird')
 parser.add_argument('image', type=str, help='The image image file to check')
 args = parser.parse_args()
 
@@ -41,13 +35,14 @@ network = conv_2d(network, 64, 3, activation='relu')
 network = max_pool_2d(network, 2)
 network = fully_connected(network, 512, activation='relu')
 network = dropout(network, 0.5)
-network = fully_connected(network, 2, activation='softmax')
+# network = fully_connected(network, 2, activation='softmax')
+network = fully_connected(network, 1, activation='linear')
 network = regression(network, optimizer='adam',
                      loss='categorical_crossentropy',
                      learning_rate=0.001)
 
-model = tflearn.DNN(network, tensorboard_verbose=0, checkpoint_path='bird_train-classifier.tfl.ckpt')
-model.load("bird_train-classifier.tfl.ckpt-50912")
+model = tflearn.DNN(network, tensorboard_verbose=0, checkpoint_path='./trained_model/bird-classifier.tfl.ckpt')
+model.load("./trained_model/bird-classifier.tfl.ckpt-52100")
 
 # Load the image file
 img = scipy.ndimage.imread(args.image, mode="RGB")
@@ -62,6 +57,8 @@ prediction = model.predict([img])
 is_bird = np.argmax(prediction[0]) == 1
 
 if is_bird:
-    print("That's a bird_train!")
+    print("That's a bird!")
 else:
-print("That's not a bird_train!")
+    print("That's not a bird!")
+    
+    

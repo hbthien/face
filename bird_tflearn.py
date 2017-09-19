@@ -1,10 +1,3 @@
-'''
-Created on Aug 16, 2017
-
-@author: hoang
-'''
-# -*- coding: utf-8 -*-
-
 """ Convolutional network applied to CIFAR-10 dataset classification task.
 
 References:

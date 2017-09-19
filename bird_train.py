@@ -8,7 +8,7 @@ from __future__ import division, print_function, absolute_import
 
 # Import tflearn and some helpers
 import tflearn
-from tflearn.data_utils import shuffle
+from tflearn.data_utils import shuffle, image_preloader
 from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.conv import conv_2d, max_pool_2d
 from tflearn.layers.estimator import regression
@@ -19,10 +19,8 @@ import pickle
 # Load the data set
 print("Loading dataset ...")
 # X, Y, X_test, Y_test = pickle.load(open("full_dataset.pkl", "rb"))
-
 from tflearn.datasets import cifar10
 (X, Y), (X_test, Y_test) = cifar10.load_data()
-
 
 # Shuffle the data
 X, Y = shuffle(X, Y)
@@ -42,16 +40,22 @@ img_aug.add_random_blur(sigma_max=3.)
 
 # Define our network architecture:
 
+X = X.reshape((-1, 32, 32, 3))
+Y = Y.reshape((-1, 1))
+X_test = X_test.reshape((-1, 32, 32, 3))
+import numpy as np
+Y_test = np.reshape(Y_test, (-1, 1))
+
 # Input is a 32x32 image with 3 color channels (red, green and blue)
-network = input_data(shape=[None, 32, 32, 3],
+network = tflearn.input_data(shape=[None, 32, 32, 3],
                      data_preprocessing=img_prep,
                      data_augmentation=img_aug)
 
 # Step 1: Convolution
-network = conv_2d(network, 32, 3, activation='relu')
+network = conv_2d(network, 32, 3, activation='relu') #incoming, nb_filter, filter_size, 
 
 # Step 2: Max pooling
-network = max_pool_2d(network, 2)
+network = max_pool_2d(network, 2) #incoming, kernel-size
 
 # Step 3: Convolution again
 network = conv_2d(network, 64, 3, activation='relu')
@@ -69,15 +73,19 @@ network = fully_connected(network, 512, activation='relu')
 network = dropout(network, 0.5)
 
 # Step 8: Fully-connected neural network with two outputs (0=isn't a bird, 1=is a bird) to make the final prediction
-network = fully_connected(network, 2, activation='softmax')
+# network = fully_connected(network, 2, activation='softmax')
+network = fully_connected(network, 1, activation='linear')
 
 # Tell tflearn how we want to train the network
 network = regression(network, optimizer='adam',
                      loss='categorical_crossentropy',
                      learning_rate=0.001)
+# network = regression(network, optimizer='adam', learning_rate=0.01,
+#                  loss='mean_square', name='target')
 
 # Wrap the network in a model object
-model = tflearn.DNN(network, tensorboard_verbose=0, checkpoint_path='bird-classifier.tfl.ckpt')
+model = tflearn.DNN(network, tensorboard_verbose=0, checkpoint_path='./trained_model/bird-classifier.tfl.ckpt')
+
 
 # Train it! We'll do 100 training passes and monitor it as it goes.
 model.fit(X, Y, n_epoch=100, shuffle=True, validation_set=(X_test, Y_test),
@@ -86,5 +94,5 @@ model.fit(X, Y, n_epoch=100, shuffle=True, validation_set=(X_test, Y_test),
           run_id='bird-classifier')
 
 # Save model when training is complete to a file
-model.save("bird-classifier.tfl")
+model.save("./trained_model/bird-classifier.tfl")
 print("Network trained and saved as bird-classifier.tfl!")
