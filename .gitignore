@@ -1,0 +1,11 @@
+*.params
+.project
+.pydevproject
+data/
+*.pyc
+*.gz
+.ipynb_checkpoints/
+.settings/
+trained_model/
+cifar-10-batches-py/
+*.dat
